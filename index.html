@@ -68,7 +68,7 @@ const audio = document.getElementById('audio');
 const FADE_STEP = 0.02;
 const FADE_INTERVAL = 50;
 let repeatCount = 0;
-const maxRepeats = 3; // número de repeticiones antes de volver a Página 1
+const maxRepeats = 3; // Número de repeticiones del audio
 
 // Validación del código
 function checkCode() {
@@ -125,7 +125,6 @@ function resetToPage1() {
 function playAudioLoop() {
   audio.currentTime = 0;
   audio.volume = 0;
-  audio.loop = true; // loop nativo
   audio.play();
 
   // Fade-in inicial
@@ -141,7 +140,10 @@ function playAudioLoop() {
   audio.addEventListener('timeupdate', function countLoop() {
     if(audio.currentTime >= audio.duration - 0.05){ // final del audio
       repeatCount++;
-      if(repeatCount >= maxRepeats){
+      if(repeatCount < maxRepeats){
+        audio.currentTime = 0;
+        audio.play();
+      } else {
         audio.pause();
         fadeOutArrivedPage();
         audio.removeEventListener('timeupdate', countLoop);
