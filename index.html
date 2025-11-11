@@ -67,8 +67,6 @@ const audio = document.getElementById('audio');
 
 const FADE_STEP = 0.02;
 const FADE_INTERVAL = 50;
-let repeatCount = 0;
-const maxRepeats = 3; // Número de repeticiones del audio
 
 // Validación del código
 function checkCode() {
@@ -95,8 +93,23 @@ function showArrivedPage() {
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Audio con loop limitado
-  playAudioLoop();
+  // Reproducir audio una sola vez con fade-in
+  audio.currentTime = 0;
+  audio.volume = 0;
+  audio.play();
+
+  let vol = 0;
+  const fadeIn = setInterval(() => {
+    if(vol < 0.8){
+      vol += FADE_STEP;
+      audio.volume = vol;
+    } else clearInterval(fadeIn);
+  }, FADE_INTERVAL);
+
+  // Cuando el audio termina, volver a Página 1
+  audio.onended = () => {
+    fadeOutArrivedPage();
+  };
 }
 
 // Fade-out y regreso a Página 1
@@ -117,39 +130,6 @@ function resetToPage1() {
 
   codePage.classList.remove('hidden');
   codePage.classList.add('visible');
-
-  repeatCount = 0; // reset contador
-}
-
-// Audio loop limitado
-function playAudioLoop() {
-  audio.currentTime = 0;
-  audio.volume = 0;
-  audio.play();
-
-  // Fade-in inicial
-  let vol = 0;
-  const fadeIn = setInterval(() => {
-    if(vol < 0.8){
-      vol += FADE_STEP;
-      audio.volume = vol;
-    } else clearInterval(fadeIn);
-  }, FADE_INTERVAL);
-
-  // Contador de repeticiones usando timeupdate
-  audio.addEventListener('timeupdate', function countLoop() {
-    if(audio.currentTime >= audio.duration - 0.05){ // final del audio
-      repeatCount++;
-      if(repeatCount < maxRepeats){
-        audio.currentTime = 0;
-        audio.play();
-      } else {
-        audio.pause();
-        fadeOutArrivedPage();
-        audio.removeEventListener('timeupdate', countLoop);
-      }
-    }
-  });
 }
 
 // Eventos para inputs
