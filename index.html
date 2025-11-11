@@ -28,15 +28,10 @@
 
   /* Página 2 — Imagen + Textos */
   #arrivedPage img { max-width: 80%; max-height: 60%; opacity: 0; transform: scale(1.1); transition: opacity 2s ease, transform 2s ease; }
-
-  #arrivedPage h2, #arrivedPage h1 {
-    opacity: 0;
-    transition: opacity 2s ease;
-  }
+  #arrivedPage h2, #arrivedPage h1 { opacity: 0; transition: opacity 2s ease; }
 
   #title { font-size: 2rem; margin-bottom: 10px; }
   #mainText { font-size: 3rem; margin-top: 20px; }
-
 </style>
 </head>
 <body>
@@ -73,7 +68,7 @@ const audio = document.getElementById('audio');
 const FADE_STEP = 0.02;
 const FADE_INTERVAL = 50;
 let repeatCount = 0;
-const maxRepeats = 3; // Número de repeticiones del audio antes de volver a Página 1
+const maxRepeats = 3; // número de repeticiones antes de volver a Página 1
 
 // Validación del código
 function checkCode() {
@@ -97,11 +92,10 @@ function showArrivedPage() {
   // Animaciones de imagen y textos
   setTimeout(() => img.style.opacity = 1, 100);
   setTimeout(() => img.style.transform = 'scale(1)', 100);
-
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Audio con loop limitado y fade-in
+  // Audio con loop limitado
   playAudioLoop();
 }
 
@@ -124,16 +118,17 @@ function resetToPage1() {
   codePage.classList.remove('hidden');
   codePage.classList.add('visible');
 
-  repeatCount = 0; // Reiniciar contador para el próximo ciclo
+  repeatCount = 0; // reset contador
 }
 
-// Función de loop de audio limitado
+// Audio loop limitado
 function playAudioLoop() {
   audio.currentTime = 0;
   audio.volume = 0;
+  audio.loop = true; // loop nativo
   audio.play();
 
-  // Fade-in
+  // Fade-in inicial
   let vol = 0;
   const fadeIn = setInterval(() => {
     if(vol < 0.8){
@@ -142,19 +137,20 @@ function playAudioLoop() {
     } else clearInterval(fadeIn);
   }, FADE_INTERVAL);
 
-  // Escucha cuando termina el audio
-  audio.onended = () => {
-    repeatCount++;
-    if(repeatCount < maxRepeats){
-      audio.currentTime = 0;
-      audio.play();
-    } else {
-      fadeOutArrivedPage();
+  // Contador de repeticiones usando timeupdate
+  audio.addEventListener('timeupdate', function countLoop() {
+    if(audio.currentTime >= audio.duration - 0.05){ // final del audio
+      repeatCount++;
+      if(repeatCount >= maxRepeats){
+        audio.pause();
+        fadeOutArrivedPage();
+        audio.removeEventListener('timeupdate', countLoop);
+      }
     }
-  };
+  });
 }
 
-// Eventos para los inputs
+// Eventos para inputs
 inputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if(input.value.length === 1 && idx < inputs.length-1){
