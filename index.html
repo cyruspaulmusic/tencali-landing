@@ -70,9 +70,10 @@ const title = document.getElementById('title');
 const text = document.getElementById('mainText');
 const audio = document.getElementById('audio');
 
-const AUDIO_DURATION = 20000; // 20 segundos
 const FADE_STEP = 0.02;
 const FADE_INTERVAL = 50;
+let repeatCount = 0;
+const maxRepeats = 3; // Número de repeticiones del audio antes de volver a Página 1
 
 // Validación del código
 function checkCode() {
@@ -93,25 +94,26 @@ function showArrivedPage() {
   arrivedPage.classList.remove('hidden');
   arrivedPage.classList.add('visible');
 
-  // Animaciones de texto y foto
+  // Animaciones de imagen y textos
   setTimeout(() => img.style.opacity = 1, 100);
   setTimeout(() => img.style.transform = 'scale(1)', 100);
 
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Audio con loop de 20s y fade-in/out
+  // Audio con loop limitado y fade-in
   playAudioLoop();
 }
 
+// Fade-out y regreso a Página 1
 function fadeOutArrivedPage() {
-  // Fade out visual
   arrivedPage.classList.remove('visible');
   arrivedPage.classList.add('hidden');
 
   setTimeout(resetToPage1, 1000);
 }
 
+// Reset Página 1
 function resetToPage1() {
   inputs.forEach(i => i.value = '');
   img.style.opacity = 0;
@@ -122,10 +124,10 @@ function resetToPage1() {
   codePage.classList.remove('hidden');
   codePage.classList.add('visible');
 
-  // Listo para el siguiente ciclo
+  repeatCount = 0; // Reiniciar contador para el próximo ciclo
 }
 
-// Audio loop con fade-in y fade-out
+// Función de loop de audio limitado
 function playAudioLoop() {
   audio.currentTime = 0;
   audio.volume = 0;
@@ -134,31 +136,25 @@ function playAudioLoop() {
   // Fade-in
   let vol = 0;
   const fadeIn = setInterval(() => {
-    if(vol < 1){
+    if(vol < 0.8){
       vol += FADE_STEP;
-      if(vol > 1) vol = 1;
       audio.volume = vol;
     } else clearInterval(fadeIn);
-  }, AUDIO_DURATION / 50);
+  }, FADE_INTERVAL);
 
-  // Fade-out y reinicio después de AUDIO_DURATION
-  setTimeout(() => {
-    let volOut = audio.volume;
-    const fadeOut = setInterval(() => {
-      if(volOut > 0){
-        volOut -= FADE_STEP;
-        if(volOut < 0) volOut = 0;
-        audio.volume = volOut;
-      } else {
-        clearInterval(fadeOut);
-        audio.pause();
-        playAudioLoop(); // reinicia el ciclo
-      }
-    }, FADE_INTERVAL);
-  }, AUDIO_DURATION);
+  // Escucha cuando termina el audio
+  audio.onended = () => {
+    repeatCount++;
+    if(repeatCount < maxRepeats){
+      audio.currentTime = 0;
+      audio.play();
+    } else {
+      fadeOutArrivedPage();
+    }
+  };
 }
 
-// Evento para cada input
+// Eventos para los inputs
 inputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if(input.value.length === 1 && idx < inputs.length-1){
