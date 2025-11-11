@@ -71,6 +71,8 @@ const text = document.getElementById('mainText');
 const audio = document.getElementById('audio');
 
 const AUDIO_DURATION = 20000; // 20 segundos
+const FADE_STEP = 0.02;
+const FADE_INTERVAL = 50;
 
 // Validación del código
 function checkCode() {
@@ -98,36 +100,11 @@ function showArrivedPage() {
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Audio con fade-in
-  audio.currentTime = 0;
-  audio.volume = 0;
-  audio.play();
-  let vol = 0;
-  const fadeIn = setInterval(() => {
-    if(vol < 1){
-      vol += 0.02;
-      audio.volume = vol;
-    } else clearInterval(fadeIn);
-  }, AUDIO_DURATION/50); // fade-in proporcional
-
-  // Después de 20s → fade-out y reinicio
-  setTimeout(() => fadeOutArrivedPage(), AUDIO_DURATION);
+  // Audio con loop de 20s y fade-in/out
+  playAudioLoop();
 }
 
 function fadeOutArrivedPage() {
-  // Audio fade-out
-  let vol = audio.volume;
-  const fadeOut = setInterval(() => {
-    if(vol > 0){
-      vol -= 0.02;
-      audio.volume = vol;
-    } else {
-      clearInterval(fadeOut);
-      audio.pause();
-      audio.currentTime = 0;
-    }
-  }, 50);
-
   // Fade out visual
   arrivedPage.classList.remove('visible');
   arrivedPage.classList.add('hidden');
@@ -146,6 +123,39 @@ function resetToPage1() {
   codePage.classList.add('visible');
 
   // Listo para el siguiente ciclo
+}
+
+// Audio loop con fade-in y fade-out
+function playAudioLoop() {
+  audio.currentTime = 0;
+  audio.volume = 0;
+  audio.play();
+
+  // Fade-in
+  let vol = 0;
+  const fadeIn = setInterval(() => {
+    if(vol < 1){
+      vol += FADE_STEP;
+      if(vol > 1) vol = 1;
+      audio.volume = vol;
+    } else clearInterval(fadeIn);
+  }, AUDIO_DURATION / 50);
+
+  // Fade-out y reinicio después de AUDIO_DURATION
+  setTimeout(() => {
+    let volOut = audio.volume;
+    const fadeOut = setInterval(() => {
+      if(volOut > 0){
+        volOut -= FADE_STEP;
+        if(volOut < 0) volOut = 0;
+        audio.volume = volOut;
+      } else {
+        clearInterval(fadeOut);
+        audio.pause();
+        playAudioLoop(); // reinicia el ciclo
+      }
+    }, FADE_INTERVAL);
+  }, AUDIO_DURATION);
 }
 
 // Evento para cada input
