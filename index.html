@@ -90,9 +90,8 @@ function showArrivedPage() {
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Reproducir audio UNA SOLA VEZ con volumen fijo
+  // Reproducir audio UNA SOLA VEZ
   audio.currentTime = 0;
-  audio.volume = 0.8;
   audio.play();
 
   // Cuando termina, volver a Página 1
