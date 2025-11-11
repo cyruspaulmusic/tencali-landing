@@ -93,11 +93,12 @@ function showArrivedPage() {
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Reproducir audio una sola vez con fade-in
+  // Reproducir audio una sola vez con fade-in y fade-out
   audio.currentTime = 0;
-  audio.volume = 0;
+  audio.volume = 0; // empieza en 0 para fade-in
   audio.play();
 
+  // Fade-in inicial
   let vol = 0;
   const fadeIn = setInterval(() => {
     if(vol < 0.8){
@@ -106,7 +107,21 @@ function showArrivedPage() {
     } else clearInterval(fadeIn);
   }, FADE_INTERVAL);
 
-  // Cuando el audio termina, volver a Página 1
+  // Fade-out en los últimos 2 segundos
+  audio.addEventListener('timeupdate', function fadeOutCheck() {
+    if(audio.duration - audio.currentTime <= 2){ // últimos 2 segundos
+      const fadeOut = setInterval(() => {
+        if(audio.volume > 0){
+          audio.volume -= FADE_STEP;
+        } else {
+          clearInterval(fadeOut);
+        }
+      }, FADE_INTERVAL);
+      audio.removeEventListener('timeupdate', fadeOutCheck);
+    }
+  });
+
+  // Cuando termina, volver a Página 1
   audio.onended = () => {
     fadeOutArrivedPage();
   };
