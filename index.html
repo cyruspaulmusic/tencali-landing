@@ -65,9 +65,6 @@ const title = document.getElementById('title');
 const text = document.getElementById('mainText');
 const audio = document.getElementById('audio');
 
-const FADE_STEP = 0.02;
-const FADE_INTERVAL = 50;
-
 // Validación del código
 function checkCode() {
   const entered = Array.from(inputs).map(i => i.value.toUpperCase());
@@ -93,33 +90,10 @@ function showArrivedPage() {
   setTimeout(() => title.style.opacity = 1, 500);
   setTimeout(() => text.style.opacity = 1, 1000);
 
-  // Reproducir audio una sola vez con fade-in y fade-out
+  // Reproducir audio UNA SOLA VEZ con volumen fijo
   audio.currentTime = 0;
-  audio.volume = 0; // empieza en 0 para fade-in
+  audio.volume = 0.8;
   audio.play();
-
-  // Fade-in inicial
-  let vol = 0;
-  const fadeIn = setInterval(() => {
-    if(vol < 0.8){
-      vol += FADE_STEP;
-      audio.volume = vol;
-    } else clearInterval(fadeIn);
-  }, FADE_INTERVAL);
-
-  // Fade-out en los últimos 2 segundos
-  audio.addEventListener('timeupdate', function fadeOutCheck() {
-    if(audio.duration - audio.currentTime <= 2){ // últimos 2 segundos
-      const fadeOut = setInterval(() => {
-        if(audio.volume > 0){
-          audio.volume -= FADE_STEP;
-        } else {
-          clearInterval(fadeOut);
-        }
-      }, FADE_INTERVAL);
-      audio.removeEventListener('timeupdate', fadeOutCheck);
-    }
-  });
 
   // Cuando termina, volver a Página 1
   audio.onended = () => {
